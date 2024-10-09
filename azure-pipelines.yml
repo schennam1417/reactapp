@@ -7,7 +7,7 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  azureSubscription: '29f54ec7-f516-4d31-8307-66f9bf94a36e'
+  azureSubscription: 'aZServiceconnection'
   acrName: 'myacrregistryforapp'
   aksName: 'aks-clusterforapp'
   resourceGroup: 'aks-resource-group'
