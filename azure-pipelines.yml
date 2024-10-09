@@ -1,0 +1,45 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  azureSubscription: '29f54ec7-f516-4d31-8307-66f9bf94a36e'
+  acrName: 'myacrregistryforapp'
+  aksName: 'aks-clusterforapp'
+  resourceGroup: 'aks-resource-group'
+
+steps:
+  # Step 1: Install Dependencies
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '22.9.0'
+    displayName: 'Install Node.js'
+
+  # Step 2: Build Docker Image and Push to ACR
+  - task: DockerInstaller@0
+    displayName: 'Install Docker'
+
+  - task: AzureCLI@2
+    inputs:
+      azureSubscription: $(azureSubscription)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az acr login --name $(acrName)
+        docker build -t $(acrName).azurecr.io/reactapp:v1 .
+        docker push $(acrName).azurecr.io/reactapp:v1
+
+  # Step 3: Deploy to AKS
+  - task: AzureCLI@2
+    inputs:
+      azureSubscription: $(azureSubscription)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az aks get-credentials --resource-group $(resourceGroup) --name $(aksName)
+        kubectl apply -f k8s/deployment.yml
+        kubectl apply -f k8s/service.yml
